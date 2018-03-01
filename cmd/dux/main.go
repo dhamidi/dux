@@ -15,6 +15,7 @@ func main() {
 	}
 	app.App.DefineCommand(new(CommandNew))
 	app.App.DefineCommand(&CommandShow{out: os.Stdout})
+	app.App.DefineCommand(&CommandList{out: os.Stdout})
 	if len(os.Args) == 1 {
 		app.App.Usage(os.Stdout)
 		return

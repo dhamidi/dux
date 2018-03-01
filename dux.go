@@ -374,3 +374,21 @@ func (ctx *Context) LoadBlueprint(blueprintName string) (*Blueprint, error) {
 	}
 	return blueprint, nil
 }
+
+// ListBlueprints returns the names of all available blueprints, suitable as arguments to LoadBlueprint.
+func (ctx *Context) ListBlueprints() ([]string, error) {
+	names := []string{}
+	walk := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if filepath.Base(path) == "manifest.json" {
+			blueprintName := filepath.Base(filepath.Dir(path))
+			names = append(names, blueprintName)
+			return filepath.SkipDir
+		}
+		return nil
+	}
+	err := filepath.Walk(filepath.Join(ctx.BaseDir, "blueprints"), walk)
+	return names, err
+}

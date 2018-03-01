@@ -46,7 +46,7 @@ func NewContextFromEnvironment(env Environment) *Context {
 
 // Log outputs a log message for the given module.
 func (ctx *Context) Log(module, kind, message string) {
-	ctx.Logger.Printf("%10s %10s %s", module, kind, message)
+	ctx.Logger.Printf("%s %s %s", module, kind, message)
 }
 
 // MergeJSON deeply merges two raw deserialized JSON objects.

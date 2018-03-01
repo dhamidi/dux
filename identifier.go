@@ -208,3 +208,11 @@ func (i *Identifier) ToSnake() *Identifier {
 		Style:        SnakeCaseStyle,
 	}
 }
+
+// ToSnake converts the identifier into lisp case
+func (i *Identifier) ToLisp() *Identifier {
+	return &Identifier{
+		Constituents: i.Constituents,
+		Style:        LispCaseStyle,
+	}
+}

@@ -13,8 +13,11 @@ func main() {
 		fmt.Printf("Error: %s\n", err)
 		return
 	}
-	cmd := &CommandNew{BlueprintName: "command"}
-	if err := cmd.Execute(app, os.Args[1:]); err != nil {
-		fmt.Printf("Error: %s\n", err)
+	app.App.DefineCommand(new(CommandNew))
+	app.App.DefineCommand(&CommandShow{out: os.Stdout})
+	if len(os.Args) == 1 {
+		app.App.Usage(os.Stdout)
+		return
 	}
+	app.App.RunCommand(os.Args[1], os.Args[2:])
 }

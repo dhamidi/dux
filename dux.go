@@ -29,16 +29,19 @@ type Context struct {
 	Logger    *log.Logger
 	Env       Environment
 	Data      interface{}
+	App       *Application
 }
 
 // NewContextFromEnvironment creates a new context with settings taking from the given environment.
 func NewContextFromEnvironment(env Environment) *Context {
-	return &Context{
+	result := &Context{
 		BaseDir:   env("PWD"),
 		OutputDir: filepath.Join(env("PWD"), "tmp"),
 		Logger:    log.New(os.Stdout, "", 0),
 		Env:       env,
 	}
+	result.App = NewApplication("dux", result)
+	return result
 }
 
 // Log outputs a log message for the given module.
@@ -88,13 +91,6 @@ func (ctx *Context) GatherData(datafile string) error {
 
 	ctx.Data = MergeJSON(ctx.Data, result)
 	return nil
-}
-
-// Command describes an action that can be executed by a user of Dux
-type Command interface {
-	Execute(ctx *Context, args []string) error
-	CommandName() string
-	CommandDescription() string
 }
 
 // BlueprintArgument encodes the data about the arguments accepted by the blueprint.
@@ -159,6 +155,9 @@ type Blueprint struct {
 
 	// Name is the basename of the directory containing the blueprint
 	Name string `json:"name"`
+
+	// Description contains a short explanation of what the blueprint is about.
+	Description string `json:"description"`
 
 	// Args is a list of arguments that are accepted by this blueprint
 	Args []*BlueprintArgument `json:"args"`

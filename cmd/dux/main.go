@@ -16,9 +16,12 @@ func main() {
 	app.App.DefineCommand(new(CommandNew))
 	app.App.DefineCommand(&CommandShow{out: os.Stdout})
 	app.App.DefineCommand(&CommandList{out: os.Stdout})
+	app.App.DefineCommand(NewCommandNewBlueprint())
 	if len(os.Args) == 1 {
 		app.App.Usage(os.Stdout)
 		return
 	}
-	app.App.RunCommand(os.Args[1], os.Args[2:])
+	if err := app.App.RunCommand(os.Args[1], os.Args[2:]); err != nil {
+		fmt.Printf("Error: %s\n", err)
+	}
 }

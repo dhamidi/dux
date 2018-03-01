@@ -151,7 +151,7 @@ type Blueprint struct {
 
 	// Data holds the data that is provided in the blueprint
 	// manifest or extracted from flags provided to the blueprint.
-	Data map[string]interface{}
+	Data map[string]interface{} `json:"data,omitempty"`
 
 	// Name is the basename of the directory containing the blueprint
 	Name string `json:"name"`

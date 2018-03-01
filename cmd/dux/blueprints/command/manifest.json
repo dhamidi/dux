@@ -1,0 +1,16 @@
+{
+    "name": "command",
+    "args": [
+        {
+            "name": "name",
+            "type": "identifier",
+            "doc": "The name of the command to generate."
+        }
+    ],
+    "files": [
+        {
+            "template": "command.go",
+            "destination": "command_{{.name.ToSnake.Lower}}.go"
+        }
+    ]
+}

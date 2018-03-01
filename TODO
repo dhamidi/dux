@@ -1,7 +1,7 @@
-- Make arguments required +feature
 - Sensible log output +feature
 - Testing +refactor
 - Multiple sources for blueprints +refactor
+x Make arguments required +feature
 x Create blueprint +command
 x List blueprints +command
 x Self-describing commands

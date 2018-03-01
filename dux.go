@@ -117,7 +117,7 @@ func (fd *BlueprintFileDescription) Render(ctx *Context, blueprint *Blueprint, d
 	}
 	destinationFileName := bytes.NewBufferString("")
 	if err := destinationFileTemplate.Execute(destinationFileName, data); err != nil {
-		return fd.Destination, fmt.Errorf("failed to generated filename from %q: %s", fd.Destination, err)
+		return fd.Destination, fmt.Errorf("failed to generate filename from %q: %s", fd.Destination, err)
 	}
 
 	t, err := blueprint.templates.Clone()
@@ -313,9 +313,24 @@ func (bp *Blueprint) ParseArgs(args []string) error {
 	if err := bp.flags.Parse(args); err != nil {
 		return err
 	}
-	bp.flags.VisitAll(func(f *flag.Flag) {
-		bp.Data[f.Name] = f.Value.(flag.Getter).Get()
+	missingArguments := []string{}
+	setArguments := map[string]bool{}
+	bp.flags.Visit(func(f *flag.Flag) {
+		setArguments[f.Name] = true
 	})
+	bp.flags.VisitAll(func(f *flag.Flag) {
+		value := f.Value.(flag.Getter).Get()
+		bp.Data[f.Name] = value
+	})
+	for _, arg := range bp.Args {
+		if setArguments[arg.Name] {
+			continue
+		}
+		missingArguments = append(missingArguments, arg.Name)
+	}
+	if len(missingArguments) > 0 {
+		return fmt.Errorf("Missing arguments: %s", strings.Join(missingArguments, ", "))
+	}
 
 	return nil
 }

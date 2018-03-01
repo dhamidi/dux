@@ -1,5 +1,6 @@
-- [ ] Sensible log output
-- [ ] Self-describing commands
-- [ ] List blueprints +command
-- [ ] Create blueprint +command
-- [ ] Testing +refactor
+- Sensible log output
+- Create blueprint +command
+- Testing +refactor
+- Multiple sources for blueprints +refactor
+x List blueprints +command
+x Self-describing commands

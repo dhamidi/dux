@@ -26,6 +26,9 @@ func (c *CommandNew) Execute(ctx *dux.Context, args []string) error {
 	if result.HasError() {
 		return result
 	}
+	if err := blueprint.RenderEdits(ctx); err != nil {
+		return err
+	}
 
 	return blueprint.CopyFilesToDestination(ctx, result)
 }

@@ -1,6 +1,7 @@
 package dux
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"flag"
@@ -10,8 +11,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // Environment provides read-only access to a key value store mapping strings to strings.
@@ -93,6 +96,88 @@ func (ctx *Context) GatherData(datafile string) error {
 	return nil
 }
 
+// BlueprintEdit describes an edit action that should be performed on a file.
+type BlueprintEdit struct {
+	File    string
+	Actions []*BlueprintEditAction
+}
+
+func (edit *BlueprintEdit) prepare(data interface{}) error {
+	for _, action := range edit.Actions {
+		if err := action.executeTemplates(data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (edit *BlueprintEdit) apply(text string) (string, string) {
+	for _, action := range edit.Actions {
+		if !action.matches(text) {
+			continue
+		}
+		return action.apply(text), action.Then
+	}
+
+	return text, "continue"
+}
+
+// BlueprintEditAction encodes a single edit action on a file
+type BlueprintEditAction struct {
+	Insert string
+	After  string
+	Then   string
+	after  *regexp.Regexp
+}
+
+func (action *BlueprintEditAction) executeTemplates(data interface{}) (err error) {
+	action.Insert, err = templateExpand(action.Insert, data)
+	if err != nil {
+		return
+	}
+	action.after, err = regexp.Compile(action.After)
+	if err != nil {
+		return
+	}
+	return nil
+}
+
+func (action *BlueprintEditAction) matches(text string) bool {
+	result := action.after.MatchString(text)
+	fmt.Fprintf(os.Stderr, "DEBUG: %s =~ /%s/ == %v\n", text, action.after, result)
+	return result
+}
+
+func (action *BlueprintEditAction) apply(text string) string {
+	replacementText := bytes.NewBufferString("")
+	fmt.Fprintf(replacementText, "%s\n", text)
+	runes := []rune(text)
+	for _, r := range runes {
+		if unicode.IsSpace(r) {
+			fmt.Fprintf(replacementText, "%c", r)
+		} else {
+			break
+		}
+	}
+	fmt.Fprintf(replacementText, "%s", action.Insert)
+	if replacementText.String() != text {
+		fmt.Printf("replacementText = %s", replacementText.String())
+	}
+	return replacementText.String()
+}
+
+func templateExpand(templateSource string, data interface{}) (string, error) {
+	t, err := template.New("main").Parse(templateSource)
+	if err != nil {
+		return templateSource, err
+	}
+	out := bytes.NewBufferString("")
+	if err := t.Execute(out, data); err != nil {
+		return templateSource, err
+	}
+	return out.String(), nil
+}
+
 // BlueprintArgument encodes the data about the arguments accepted by the blueprint.
 type BlueprintArgument struct {
 	Name string
@@ -110,6 +195,62 @@ type BlueprintFileDescription struct {
 	Destination string
 }
 
+// RenderEdits executes a blueprint's edit actions
+func (bp *Blueprint) RenderEdits(ctx *Context) error {
+	data := MergeJSON(ctx.Data, bp.Data)
+	for _, file := range bp.Edit {
+		if err := file.prepare(data); err != nil {
+			return err
+		}
+
+		if err := bp.editFile(file, ctx, data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (bp *Blueprint) editFile(edit *BlueprintEdit, ctx *Context, data interface{}) error {
+	inputFileName := filepath.Join(ctx.BaseDir, edit.File)
+	outputFileName := filepath.Join(ctx.OutputDir, edit.File)
+	if err := os.MkdirAll(filepath.Dir(outputFileName), 0755); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("failed to create output directory: %s", err)
+	}
+	outputFile, err := os.Create(outputFileName)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %s", err)
+	}
+	defer outputFile.Close()
+	inputFile, err := os.Open(inputFileName)
+	if err != nil {
+		return fmt.Errorf("failed to open input file: %s", err)
+	}
+	defer inputFile.Close()
+	type editState func(string) (string, editState)
+	lines := bufio.NewScanner(inputFile)
+	replaceState := (editState)(nil)
+	echoState := (editState)(nil)
+	echoState = func(text string) (string, editState) {
+		return text, echoState
+	}
+	replaceState = func(text string) (string, editState) {
+		replacementText, next := edit.apply(text)
+		if next == "stop" {
+			return replacementText, echoState
+		}
+		return replacementText, replaceState
+	}
+	currentState := replaceState
+	replacementText := ""
+	for lines.Scan() {
+		replacementText, currentState = currentState(lines.Text())
+		fmt.Fprintf(outputFile, "%s\n", replacementText)
+	}
+	outputFile.Close()
+	return nil
+}
+
+// Render executes a blueprint’s
 func (fd *BlueprintFileDescription) Render(ctx *Context, blueprint *Blueprint, data interface{}) (string, error) {
 	destinationFileTemplate, err := template.New("main").Parse(fd.Destination)
 	if err != nil {
@@ -125,6 +266,9 @@ func (fd *BlueprintFileDescription) Render(ctx *Context, blueprint *Blueprint, d
 		return destinationFileName.String(), fmt.Errorf("failed to clone templates: %s", err)
 	}
 	outputFilePath := filepath.Join(ctx.OutputDir, destinationFileName.String())
+	if err := os.MkdirAll(filepath.Dir(outputFilePath), 0755); err != nil {
+		return destinationFileName.String(), fmt.Errorf("failed to create output directory: %s", err)
+	}
 	outputFile, err := os.Create(outputFilePath)
 	if err != nil {
 		return destinationFileName.String(), fmt.Errorf("failed to create output file %q: %s", outputFilePath, err)
@@ -165,6 +309,9 @@ type Blueprint struct {
 	// Files describes the list of files that should be generated
 	// for this blueprint.
 	Files []*BlueprintFileDescription `json:"files"`
+
+	// Edit describes a list of files to which edit actions should be applied.
+	Edit []*BlueprintEdit `json:"edit"`
 }
 
 // NewBlueprint creates a new blueprint instance.
@@ -374,6 +521,21 @@ func (bp *Blueprint) copyFileToDestination(ctx *Context, fileName string) {
 	}
 }
 
+func copyFile(srcFilePath, destFilePath string) error {
+	dest, err := os.OpenFile(destFilePath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer dest.Close()
+	src, err := os.Open(srcFilePath)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	_, err = io.Copy(dest, src)
+	return err
+}
+
 // LoadBlueprint loads a blueprint from disk.
 func (ctx *Context) LoadBlueprint(blueprintName string) (*Blueprint, error) {
 	directoryName := filepath.Join(ctx.BaseDir, "blueprints", blueprintName)
@@ -405,5 +567,8 @@ func (ctx *Context) ListBlueprints() ([]string, error) {
 		return nil
 	}
 	err := filepath.Walk(filepath.Join(ctx.BaseDir, "blueprints"), walk)
+	if err != nil && os.IsNotExist(err) {
+		return []string{}, nil
+	}
 	return names, err
 }

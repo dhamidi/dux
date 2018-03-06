@@ -37,7 +37,7 @@ func (s *SeparatedIdentifier) Upper(constituents []string) string {
 	out := bytes.NewBufferString("")
 	for i, c := range constituents {
 		fmt.Fprintf(out, "%s", strings.ToUpper(c))
-		if i > 0 && i < len(constituents)-1 {
+		if i < len(constituents)-1 {
 			fmt.Fprintf(out, "%s", s.Separator)
 		}
 	}
@@ -50,7 +50,7 @@ func (s *SeparatedIdentifier) Lower(constituents []string) string {
 	out := bytes.NewBufferString("")
 	for i, c := range constituents {
 		fmt.Fprintf(out, "%s", strings.ToLower(c))
-		if i > 0 && i < len(constituents)-1 {
+		if i < len(constituents)-1 {
 			fmt.Fprintf(out, "%s", s.Separator)
 		}
 	}
@@ -70,7 +70,9 @@ func (s *CasedIdentifier) Parse(identifier string) []string {
 	result := []string{}
 	for _, r := range identifier {
 		if unicode.IsUpper(r) {
-			result = append(result, string(constituent))
+			if len(constituent) > 0 {
+				result = append(result, string(constituent))
+			}
 			constituent = []rune{r}
 		} else {
 			constituent = append(constituent, r)
@@ -209,7 +211,15 @@ func (i *Identifier) ToSnake() *Identifier {
 	}
 }
 
-// ToSnake converts the identifier into lisp case
+// ToCamel converts the identifier into snake case
+func (i *Identifier) ToCamel() *Identifier {
+	return &Identifier{
+		Constituents: i.Constituents,
+		Style:        CamelCasedStyle,
+	}
+}
+
+// ToLisp converts the identifier into lisp case
 func (i *Identifier) ToLisp() *Identifier {
 	return &Identifier{
 		Constituents: i.Constituents,

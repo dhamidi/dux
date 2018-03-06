@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -37,6 +38,9 @@ func (c *CommandNewBlueprint) CommandDescription() string { return `Initialize a
 func (c *CommandNewBlueprint) Execute(ctx *dux.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
 		return err
+	}
+	if c.name == "" {
+		return fmt.Errorf("missing argument: name")
 	}
 	blueprint := &dux.Blueprint{
 		Name:        c.name,

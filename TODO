@@ -1,3 +1,6 @@
+- Edit operations +feature
+- Command flags part of API +feature
+- Help command +feature
 - Sensible log output +feature
 - Testing +refactor
 - Multiple sources for blueprints +refactor

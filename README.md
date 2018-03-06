@@ -17,7 +17,7 @@ $ touch test/my_app/controllers/widgets_controller_test.rb
 ```sh
 $ dux new controller Widgets
 create lib/my_app/controllers/widgets_controller.rb
-create test/my_app/controllers/widgets_controller.rb
+create test/my_app/controllers/widgets_controller_test.rb
 $ dux edit controller Widgets
 $EDITOR lib/my_app/controllers/widgets_controller.rb
 ```

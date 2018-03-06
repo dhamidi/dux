@@ -1,21 +1,31 @@
 {
-    "name": "command",
-    "description": "Generate a new command for the Dux CLI",
-    "args": [
-        {
-            "name": "name",
-            "type": "identifier",
-            "doc": "The name of the command to generate."
-        }, {
-            "name": "description",
-            "type": "string",
-            "doc": "Short description of what the command does."
-        }
-    ],
-    "files": [
-        {
-            "template": "command.go",
-            "destination": "command_{{.name.ToSnake.Lower}}.go"
-        }
-    ]
+  "name": "command",
+  "description": "Generate a new command for the Dux CLI",
+  "args": [
+    {
+      "name": "name",
+      "type": "identifier",
+      "doc": "The name of the command to generate."
+    }, {
+      "name": "description",
+      "type": "string",
+      "doc": "Short description of what the command does."
+    }
+  ],
+  "edit": [
+    {
+      "file": "main.go",
+      "actions": [
+        { "insert": "app.App.DefineCommand(&Command{{.name.ToCamel.Upper}}{})",
+          "after":  "app.App.DefineCommand",
+          "then": "stop" }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "template": "command.go",
+      "destination": "command_{{.name.ToSnake.Lower}}.go"
+    }
+  ]
 }

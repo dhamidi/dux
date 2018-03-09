@@ -22,6 +22,10 @@ func (c *CommandNew) Execute(ctx *dux.Context, args []string) error {
 		return err
 	}
 
+	if err := blueprint.GatherData(); err != nil {
+		return err
+	}
+
 	result := blueprint.Render(ctx)
 	if result.HasError() {
 		return result

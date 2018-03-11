@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"path/filepath"
 )
 
 // FileSystem encodes basic operations that can be performed on a file
@@ -19,6 +20,9 @@ type FileSystem interface {
 	//
 	// Any errors returned will be of type *FileSystemError
 	Create(filename string) (io.WriteCloser, error)
+
+	// List returns the names of all files in directory d
+	List(dir string) ([]string, error)
 }
 
 // FileSystemError wraps errors returned by a FileSystem
@@ -89,4 +93,15 @@ func (fs *InMemoryFileSystem) Create(filename string) (io.WriteCloser, error) {
 	buffer := bytes.NewBufferString("")
 	fs.files[filename] = buffer
 	return NopWriteCloser(buffer), nil
+}
+
+// List returns all file names one hierarchy level below the directory d
+func (fs *InMemoryFileSystem) List(d string) ([]string, error) {
+	result := []string{}
+	for filename := range fs.files {
+		if matches, _ := filepath.Match(filepath.Join(d, "*"), filename); matches {
+			result = append(result, filepath.Base(filename))
+		}
+	}
+	return result, nil
 }

@@ -1,25 +1,28 @@
 package dux_test
 
 import (
-	"path/filepath"
 	"testing"
 
 	h "github.com/dhamidi/dux/testing"
 )
 
-func TestApp_RenderBlueprint_creates_the_files_specified_by_the_blueprint(t *testing.T) {
+func TestApp_RenderBlueprint_renders_blueprints_that_have_been_previously_created(t *testing.T) {
 	app := h.NewApp()
-	cmd := h.RenderBlueprint()
-	if err := app.Execute(cmd); err != nil {
-		t.Fatalf("renderBlueprint: %s", err)
-	}
+	do := h.FailOnExecuteError(t, app)
+	do(h.CreateBlueprint("a"))
+	do(h.DefineBlueprintTemplate("a", "x.tmpl", "Test"))
+	do(h.DefineBlueprintFile("a", "x-file", "x.tmpl"))
+	do(h.RenderBlueprint("a"))
+	h.AssertFileContents(t, app.FileSystem, "staging/x-file", "Test")
+}
 
-	for _, filename := range h.ExampleBlueprintFilenames() {
-		path := filepath.Join(cmd.Destination, filename)
-		_, err := app.FileSystem.Open(path)
-		if err != nil {
-			t.Fatalf("Expecting file %q to exist: %s", path, err)
-		}
-	}
+func TestApp_RenderBlueprint_provides_the_given_context_to_the_template_object(t *testing.T) {
+	app := h.NewApp()
+	do := h.FailOnExecuteError(t, app)
+	do(h.CreateBlueprint("a"))
+	do(h.DefineBlueprintTemplate("a", "x.tmpl", "{{.n}}"))
+	do(h.DefineBlueprintFile("a", "x-file", "x.tmpl"))
+	do(h.RenderBlueprint("a", map[string]interface{}{"n": 1}))
+	h.AssertFileContents(t, app.FileSystem, "staging/x-file", "1")
 
 }

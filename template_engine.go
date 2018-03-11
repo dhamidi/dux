@@ -1,0 +1,67 @@
+package dux
+
+import (
+	"html/template"
+	"io"
+	"io/ioutil"
+	"path/filepath"
+)
+
+// TemplateEngine defines the interface to access a text-based
+// templating system with templates stored in a file system.
+type TemplateEngine interface {
+	// RenderTemplates writes the data produced by rendering the
+	// template identified by templateFileName to destination.
+	// The optional data parameter is used as the context object
+	// when rendering the template.
+	RenderTemplate(destination io.Writer, templateFileName string, data ...interface{}) error
+}
+
+// HTMLTemplateEngine implements TemplateEngine using html/template.
+// It parses all templates in the root directory, but only renders the
+// one specified by the template file name.
+type HTMLTemplateEngine struct {
+	dir string
+	fs  FileSystem
+}
+
+// NewHTMLTemplateEngine returns a new HTMLTemplateEngine reading
+// templates from the provided directory in the given file system.
+func NewHTMLTemplateEngine(dir string, fs FileSystem) *HTMLTemplateEngine {
+	return &HTMLTemplateEngine{
+		dir: dir,
+		fs:  fs,
+	}
+}
+
+// RenderTemplate implements TemplateEngine
+func (t *HTMLTemplateEngine) RenderTemplate(out io.Writer, templateName string, data ...interface{}) error {
+	context := (interface{})(nil)
+	if len(data) > 0 {
+		context = data[0]
+	}
+
+	templateFiles, err := t.fs.List(t.dir)
+	if err != nil {
+		return err
+	}
+
+	tmpl := template.New(templateName)
+	for _, filename := range templateFiles {
+		templateFile, err := t.fs.Open(filepath.Join(t.dir, filename))
+		if err != nil {
+			return err
+		}
+		contents, err := ioutil.ReadAll(templateFile)
+		if err != nil {
+			templateFile.Close()
+			return err
+		}
+		tmpl, err = tmpl.Parse(string(contents))
+		if err != nil {
+			return err
+		}
+	}
+
+	return tmpl.ExecuteTemplate(out, templateName, context)
+}

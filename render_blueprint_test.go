@@ -24,5 +24,15 @@ func TestApp_RenderBlueprint_provides_the_given_context_to_the_template_object(t
 	do(h.DefineBlueprintFile("a", "x-file", "x.tmpl"))
 	do(h.RenderBlueprint("a", map[string]interface{}{"n": 1}))
 	h.AssertFileContents(t, app.FileSystem, "staging/x-file", "1")
+}
+
+func TestApp_RenderBlueprint_renders_destination_file_names_as_templates(t *testing.T) {
+	app := h.NewApp()
+	do := h.FailOnExecuteError(t, app)
+	do(h.CreateBlueprint("a"))
+	do(h.DefineBlueprintTemplate("a", "x.tmpl", "{{.n}}"))
+	do(h.DefineBlueprintFile("a", "{{.n}}-file", "x.tmpl"))
+	do(h.RenderBlueprint("a", map[string]interface{}{"n": 1}))
+	h.AssertFileContents(t, app.FileSystem, "staging/1-file", "1")
 
 }

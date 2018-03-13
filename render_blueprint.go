@@ -38,7 +38,11 @@ func (r *RenderBlueprintToFileSystem) Execute(command Command) error {
 	templates := NewHTMLTemplateEngine(filepath.Join("blueprints", blueprint.Name, "templates"), r.fs)
 	for destinationFileName, templateName := range blueprint.Files {
 		var err error
-		outputFilePath := filepath.Join(args.Destination, destinationFileName)
+		outputFilePathTemplate := filepath.Join(args.Destination, destinationFileName)
+		outputFilePath, err := templates.RenderString(outputFilePathTemplate, args.Data)
+		if err != nil {
+			return err
+		}
 		destinationFile, err := r.fs.Create(outputFilePath)
 		if err != nil {
 			return err

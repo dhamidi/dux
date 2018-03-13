@@ -1,6 +1,7 @@
 package dux
 
 import (
+	"bytes"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -15,6 +16,10 @@ type TemplateEngine interface {
 	// The optional data parameter is used as the context object
 	// when rendering the template.
 	RenderTemplate(destination io.Writer, templateFileName string, data ...interface{}) error
+
+	// RenderString renders a single string as a template with the
+	// given context.
+	RenderString(tmpl string, data interface{}) (string, error)
 }
 
 // HTMLTemplateEngine implements TemplateEngine using html/template.
@@ -64,4 +69,19 @@ func (t *HTMLTemplateEngine) RenderTemplate(out io.Writer, templateName string, 
 	}
 
 	return tmpl.ExecuteTemplate(out, templateName, context)
+}
+
+// RenderString implements TemplateEngine
+func (t *HTMLTemplateEngine) RenderString(tmpl string, data interface{}) (string, error) {
+	parsedTemplate, err := template.New("main").Parse(tmpl)
+	if err != nil {
+		return tmpl, err
+	}
+
+	out := bytes.NewBufferString("")
+	if err := parsedTemplate.Execute(out, data); err != nil {
+		return tmpl, err
+	}
+
+	return out.String(), nil
 }

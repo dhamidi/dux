@@ -7,6 +7,7 @@ type Application struct {
 	commandHandlers map[string]CommandHandler
 	FileSystem      FileSystem // the file system into which files are rendered
 	Store           Store      // access to persistent storage of serialized objects.
+	EventStore      EventStore // access to events that have been emitted by commands
 }
 
 // NewApplication constructs a new application instance with sensible
@@ -16,8 +17,9 @@ func NewApplication() *Application {
 		commandHandlers: map[string]CommandHandler{},
 		FileSystem:      NewInMemoryFileSystem(),
 	}
+	result.EventStore = NewTransientEventStore()
 	result.Store = NewFileSystemStore("blueprints", result.FileSystem)
-	result.Handle("render-blueprint", NewRenderBlueprintToFileSystem(result.FileSystem, result.Store))
+	result.Handle("render-blueprint", NewRenderBlueprintToFileSystem(result.FileSystem, result.Store, result.EventStore))
 	result.Handle("create-blueprint", NewCreateBlueprintInFileSystem(result.Store))
 	result.Handle("define-blueprint-template", NewStoreBlueprintTemplate(result.FileSystem))
 	result.Handle("define-blueprint-file", NewAddFileToBlueprint(result.Store))

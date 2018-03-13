@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/dhamidi/dux"
@@ -55,4 +56,33 @@ func FailOnExecuteError(t *testing.T, h dux.CommandHandler) func(dux.Command) er
 		}
 		return nil
 	}
+}
+
+func AssertEvent(t *testing.T, events dux.EventStore, eventName string, expectedPayload dux.EventPayload) {
+	t.Helper()
+	eventNames := []string{}
+	allEvents, err := events.All()
+	if err != nil {
+		t.Fatalf("AssertEvent: failed to fetch events from event store: %s", err)
+	}
+	for _, event := range allEvents {
+		eventNames = append(eventNames, event.Name)
+		if event.Name != eventName {
+			continue
+		}
+
+		for key, expectedValue := range expectedPayload {
+			actualValue := event.Payload[key]
+			if reflect.DeepEqual(expectedValue, actualValue) {
+				continue
+			}
+			t.Fatalf("event payload mismatch: want %#v, got %#v",
+				expectedValue,
+				actualValue,
+			)
+		}
+		return
+	}
+
+	t.Fatalf("Event %q not found in %v", eventName, eventNames)
 }

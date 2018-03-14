@@ -25,6 +25,7 @@ func main() {
 	})
 
 	blueprintCommands := cli.NewDispatchCommand("blueprint").
+		Describe("Operations on blueprints").
 		Add("template", cli.NewCommandBlueprintTemplate()).
 		Add("file", cli.NewCommandBlueprintFile()).
 		Add("show", cli.NewCommandBlueprintShow())

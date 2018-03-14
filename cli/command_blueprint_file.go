@@ -3,6 +3,7 @@ package cli
 import (
 	"flag"
 	"fmt"
+	"io"
 
 	"github.com/dhamidi/dux"
 )
@@ -17,6 +18,20 @@ type CommandBlueprintFile struct {
 // NewCommandBlueprintFile creates a new, empty instance of this command.
 func NewCommandBlueprintFile() *CommandBlueprintFile {
 	return &CommandBlueprintFile{}
+}
+
+// Description implements HasDescription
+func (cmd *CommandBlueprintFile) Description() string {
+	return `Associate file with template in blueprint`
+}
+
+// ShowUsage implements HasUsage
+func (cmd *CommandBlueprintFile) ShowUsage(out io.Writer) {
+	fmt.Fprintf(out, "Usage: file BLUEPRINT FILENAME TEMPLATE\n\n")
+	fmt.Fprintf(out, "Define FILENAME to be generated from TEMPLATE in BLUEPRINT\n\n")
+	fmt.Fprintf(out, "Run\n\n")
+	fmt.Fprintf(out, "  blueprint show BLUEPRINT\n\n")
+	fmt.Fprintf(out, "to see possible values for TEMPLATE\n\n")
 }
 
 // Exec implements Command

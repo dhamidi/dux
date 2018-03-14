@@ -38,3 +38,6 @@ func (cmd *CommandNew) Options() *flag.FlagSet {
 	flags.StringVar(&cmd.Destination, "destination", "", "Directory into which to render the blueprint")
 	return flags
 }
+
+// Description implements HasDescription
+func (cmd *CommandNew) Description() string { return `Create new files from blueprint` }

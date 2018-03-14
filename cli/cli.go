@@ -39,6 +39,10 @@ func (cli *CLI) Execute(cmd Command, args []string) error {
 	err := cmd.Exec(cli, args)
 	if err != nil {
 		cli.ShowError(err)
+		if usage, ok := cmd.(HasUsage); ok {
+			usage.ShowUsage(cli.err)
+			return nil
+		}
 	}
 	return err
 }

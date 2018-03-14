@@ -34,5 +34,11 @@ func main() {
 		Add("new", cli.NewCommandNew()).
 		Add("blueprint", blueprintCommands)
 
-	cliApp.Execute(dispatcher, os.Args)
+	cmd, err := cliApp.Execute(dispatcher, os.Args)
+	if err != nil {
+		cliApp.ShowError(err)
+		if usage, ok := cmd.(cli.HasUsage); ok {
+			usage.ShowUsage(cliApp.Err)
+		}
+	}
 }

@@ -21,22 +21,22 @@ func NewCommandBlueprintTemplate() *CommandBlueprintTemplate {
 }
 
 // Exec implements Command
-func (cmd *CommandBlueprintTemplate) Exec(ctx *CLI, args []string) error {
+func (cmd *CommandBlueprintTemplate) Exec(ctx *CLI, args []string) (Command, error) {
 	if len(args) == 0 {
-		return fmt.Errorf("No blueprint name provided")
+		return cmd, fmt.Errorf("No blueprint name provided")
 	}
 	cmd.BlueprintName = args[0]
 	args = args[1:]
 	if len(args) == 0 {
-		return fmt.Errorf("No template name provided")
+		return cmd, fmt.Errorf("No template name provided")
 	}
 	cmd.TemplateName = args[0]
 
 	if err := cmd.ReadContents(ctx); err != nil {
-		return err
+		return cmd, err
 	}
 
-	return ctx.app.Execute(&dux.DefineBlueprintTemplate{
+	return cmd, ctx.app.Execute(&dux.DefineBlueprintTemplate{
 		BlueprintName: cmd.BlueprintName,
 		TemplateName:  cmd.TemplateName,
 		Contents:      cmd.Contents,

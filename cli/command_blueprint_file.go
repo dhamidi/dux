@@ -35,24 +35,24 @@ func (cmd *CommandBlueprintFile) ShowUsage(out io.Writer) {
 }
 
 // Exec implements Command
-func (cmd *CommandBlueprintFile) Exec(ctx *CLI, args []string) error {
+func (cmd *CommandBlueprintFile) Exec(ctx *CLI, args []string) (Command, error) {
 	if len(args) == 0 {
-		return fmt.Errorf("No blueprint name provided")
+		return cmd, fmt.Errorf("No blueprint name provided")
 	}
 	cmd.BlueprintName = args[0]
 	args = args[1:]
 	if len(args) == 0 {
-		return fmt.Errorf("No file name provided")
+		return cmd, fmt.Errorf("No file name provided")
 	}
 	cmd.FileName = args[0]
 
 	args = args[1:]
 	if len(args) == 0 {
-		return fmt.Errorf("No template name provided")
+		return cmd, fmt.Errorf("No template name provided")
 	}
 	cmd.TemplateName = args[0]
 
-	return ctx.app.Execute(&dux.DefineBlueprintFile{
+	return cmd, ctx.app.Execute(&dux.DefineBlueprintFile{
 		BlueprintName: cmd.BlueprintName,
 		TemplateName:  cmd.TemplateName,
 		FileName:      cmd.FileName,

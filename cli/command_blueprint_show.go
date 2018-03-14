@@ -18,18 +18,18 @@ func NewCommandBlueprintShow() *CommandBlueprintShow {
 }
 
 // Exec implements Command
-func (cmd *CommandBlueprintShow) Exec(ctx *CLI, args []string) error {
+func (cmd *CommandBlueprintShow) Exec(ctx *CLI, args []string) (Command, error) {
 	if len(args) == 0 {
-		return fmt.Errorf("No blueprint name provided")
+		return cmd, fmt.Errorf("No blueprint name provided")
 	}
 	cmd.BlueprintName = args[0]
 	blueprint := new(dux.Blueprint)
 	if err := ctx.app.Store.Get(cmd.BlueprintName, blueprint); err != nil {
-		return err
+		return cmd, fmt.Errorf("Failed to load blueprint %q", cmd.BlueprintName)
 	}
 
 	cmd.Show(ctx, blueprint)
-	return nil
+	return cmd, nil
 }
 
 // Options implements Command

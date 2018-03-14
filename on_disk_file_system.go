@@ -46,3 +46,12 @@ func (fs *OnDiskFileSystem) List(dir string) ([]string, error) {
 	names, err := f.Readdirnames(0)
 	return names, err
 }
+
+// Rename renames a file using os.Rename.
+//
+// Target directories are created using os.MkdirAll before renaming
+// the file.
+func (fs *OnDiskFileSystem) Rename(oldpath, newpath string) error {
+	os.MkdirAll(filepath.Dir(newpath), 0755)
+	return os.Rename(oldpath, newpath)
+}

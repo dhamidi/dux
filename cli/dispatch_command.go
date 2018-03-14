@@ -47,9 +47,9 @@ func (cmd *DispatchCommand) Describe(desc string) *DispatchCommand {
 
 // Exec implements Command by consuming the first entry in args and
 // dispatching to a command with a matching name.
-func (cmd *DispatchCommand) Exec(ctx *CLI, args []string) error {
+func (cmd *DispatchCommand) Exec(ctx *CLI, args []string) (Command, error) {
 	if len(args) == 0 {
-		return fmt.Errorf("No subcommand provided")
+		return cmd, fmt.Errorf("No subcommand provided")
 	}
 
 	if args[0] == cmd.name {
@@ -57,12 +57,12 @@ func (cmd *DispatchCommand) Exec(ctx *CLI, args []string) error {
 	}
 
 	if len(args) == 0 {
-		return fmt.Errorf("No subcommand provided")
+		return cmd, fmt.Errorf("No subcommand provided")
 	}
 
 	subcommand, found := cmd.subcommands[args[0]]
 	if !found {
-		return fmt.Errorf("Unknown command: %q", args[0])
+		return cmd, fmt.Errorf("Unknown command: %q", args[0])
 	}
 
 	return ctx.Execute(subcommand, args[1:])

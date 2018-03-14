@@ -64,7 +64,7 @@ func TestApp_RenderBlueprint_emits_an_event_if_destination_file_cannot_be_opened
 	failingFS := h.NewFailingFileSystem(app.FileSystem)
 	app.FileSystem = failingFS
 	failingFS.Fail("create", "staging/x-file")
-	app.ResetDefaultHandlers()
+	app.Init()
 	do := h.FailOnExecuteError(t, app)
 	do(h.CreateBlueprint("a"))
 	do(h.DefineBlueprintTemplate("a", "x.tmpl", "{{.n}}"))
@@ -78,7 +78,7 @@ func TestApp_RenderBlueprint_emits_an_event_if_destination_file_cannot_be_writte
 	failingFS := h.NewFailingFileSystem(app.FileSystem)
 	app.FileSystem = failingFS
 	failingFS.Fail("write", "staging/x-file")
-	app.ResetDefaultHandlers()
+	app.Init()
 	do := h.FailOnExecuteError(t, app)
 	do(h.CreateBlueprint("a"))
 	do(h.DefineBlueprintTemplate("a", "x.tmpl", "{{.n}}"))

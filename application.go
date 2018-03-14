@@ -16,17 +16,17 @@ func NewApplication() *Application {
 	result := &Application{
 		commandHandlers: map[string]CommandHandler{},
 		FileSystem:      NewInMemoryFileSystem(),
+		EventStore:      NewTransientEventStore(),
 	}
-	result.EventStore = NewTransientEventStore()
-	result.Store = NewFileSystemStore("blueprints", result.FileSystem)
-	return result.ResetDefaultHandlers()
+	return result.Init()
 }
 
-// ResetDefaultHandlers installs all default command handlers after clearing all registered command handlers.
-func (app *Application) ResetDefaultHandlers() *Application {
+// Init installs all default command handlers after clearing all registered command handlers.
+func (app *Application) Init() *Application {
 	app.commandHandlers = map[string]CommandHandler{}
+	app.Store = NewFileSystemStore("blueprints", app.FileSystem)
 	app.Handle("render-blueprint", NewRenderBlueprintToFileSystem(app.FileSystem, app.Store, app.EventStore))
-	app.Handle("create-blueprint", NewCreateBlueprintInFileSystem(app.Store))
+	app.Handle("create-blueprint", NewCreateBlueprintInFileSystem(app.Store, app.EventStore))
 	app.Handle("define-blueprint-template", NewStoreBlueprintTemplate(app.FileSystem))
 	app.Handle("define-blueprint-file", NewAddFileToBlueprint(app.Store))
 	return app

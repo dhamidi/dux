@@ -10,13 +10,15 @@ func (c *CreateBlueprint) CommandName() string { return "create-blueprint" }
 
 // CreateBlueprintInFileSystem stores a blueprint in the provided blueprint store.
 type CreateBlueprintInFileSystem struct {
-	store Store
+	store  Store
+	events EventStore
 }
 
 // NewCreateBlueprintInFileSystem returns a new command handler with the given store
-func NewCreateBlueprintInFileSystem(store Store) *CreateBlueprintInFileSystem {
+func NewCreateBlueprintInFileSystem(store Store, events EventStore) *CreateBlueprintInFileSystem {
 	return &CreateBlueprintInFileSystem{
-		store: store,
+		store:  store,
+		events: events,
 	}
 }
 
@@ -26,5 +28,12 @@ func (h *CreateBlueprintInFileSystem) Execute(command Command) error {
 	blueprint := &Blueprint{
 		Name: createBlueprint.Name,
 	}
-	return h.store.Put(blueprint.Name, blueprint)
+	err := h.store.Put(blueprint.Name, blueprint)
+	if err == nil {
+		h.events.Emit(&Event{
+			Name:    "blueprint-created",
+			Payload: EventPayload{"name": createBlueprint.Name},
+		})
+	}
+	return err
 }

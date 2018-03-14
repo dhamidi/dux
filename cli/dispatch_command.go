@@ -9,6 +9,7 @@ import (
 // DispatchCommand implements Command by consuming one argument and
 // dispatching to subcommands.
 type DispatchCommand struct {
+	parent      *DispatchCommand
 	name        string
 	description string
 	subcommands map[string]Command
@@ -22,6 +23,17 @@ func NewDispatchCommand(name string) *DispatchCommand {
 		name:        name,
 		subcommands: map[string]Command{},
 	}
+}
+
+// SetParent associates this dispatcher with a parent dispatcher.
+// This is mainly useful for printing the full command path when in
+// ShowUsage.
+//
+// SetParent is called automatically by Add when adding a
+// DispatchCommand.
+func (cmd *DispatchCommand) SetParent(parent *DispatchCommand) *DispatchCommand {
+	cmd.parent = parent
+	return cmd
 }
 
 // Description implements HasDescription
@@ -62,7 +74,7 @@ func (cmd *DispatchCommand) ShowUsage(out io.Writer) {
 		return
 	}
 
-	fmt.Fprintf(out, "\nUsage: %s SUBCOMMAND\n\n", cmd.name)
+	fmt.Fprintf(out, "\nUsage: %s SUBCOMMAND\n\n", cmd.CommandPath())
 
 	if desc := cmd.Description(); desc != "" {
 		fmt.Fprintf(out, "%s\n\n", desc)
@@ -111,6 +123,19 @@ func (cmd *DispatchCommand) Options() *flag.FlagSet { return nil }
 
 // Add defines a new subcommand
 func (cmd *DispatchCommand) Add(name string, command Command) *DispatchCommand {
+	if child, isChild := command.(*DispatchCommand); isChild {
+		child.SetParent(cmd)
+	}
 	cmd.subcommands[name] = command
 	return cmd
+}
+
+// CommandPath returns the full path to this subcommand as a list of
+// space separated words.
+func (cmd *DispatchCommand) CommandPath() string {
+	if cmd.parent != nil {
+		return cmd.parent.CommandPath() + " " + cmd.name
+	}
+
+	return cmd.name
 }

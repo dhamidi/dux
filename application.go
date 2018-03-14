@@ -27,7 +27,7 @@ func (app *Application) Init() *Application {
 	app.Store = NewFileSystemStore("blueprints", app.FileSystem)
 	app.Handle("render-blueprint", NewRenderBlueprintToFileSystem(app.FileSystem, app.Store, app.EventStore))
 	app.Handle("create-blueprint", NewCreateBlueprintInFileSystem(app.Store, app.EventStore))
-	app.Handle("define-blueprint-template", NewStoreBlueprintTemplate(app.FileSystem))
+	app.Handle("define-blueprint-template", NewStoreBlueprintTemplate(app.FileSystem, app.EventStore))
 	app.Handle("define-blueprint-file", NewAddFileToBlueprint(app.Store))
 	return app
 }

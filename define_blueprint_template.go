@@ -17,13 +17,15 @@ func (c *DefineBlueprintTemplate) CommandName() string { return "define-blueprin
 
 // StoreBlueprintTemplate writes the given template into a subdirectory of the given blueprint's directory.
 type StoreBlueprintTemplate struct {
-	fs FileSystem
+	fs     FileSystem
+	events EventStore
 }
 
 // NewStoreBlueprintTemplate returns a new command handler with the given file system.
-func NewStoreBlueprintTemplate(fs FileSystem) *StoreBlueprintTemplate {
+func NewStoreBlueprintTemplate(fs FileSystem, events EventStore) *StoreBlueprintTemplate {
 	return &StoreBlueprintTemplate{
-		fs: fs,
+		fs:     fs,
+		events: events,
 	}
 }
 
@@ -37,5 +39,14 @@ func (h *StoreBlueprintTemplate) Execute(command Command) error {
 	}
 	defer out.Close()
 	_, err = io.WriteString(out, args.Contents)
+	if err == nil {
+		h.events.Emit(&Event{
+			Name: "blueprint-template-defined",
+			Payload: EventPayload{
+				"blueprintName": args.BlueprintName,
+				"templateName":  args.TemplateName,
+			},
+		})
+	}
 	return err
 }

@@ -64,7 +64,9 @@ func (cmd *DispatchCommand) ShowUsage(out io.Writer) {
 
 	fmt.Fprintf(out, "\nUsage: %s SUBCOMMAND\n\n", cmd.name)
 
-	fmt.Fprintf(out, "%s\n\n", cmd.Description())
+	if desc := cmd.Description(); desc != "" {
+		fmt.Fprintf(out, "%s\n\n", desc)
+	}
 
 	fmt.Fprintf(out, "Available commands:\n")
 	longestSubcommandName := ""

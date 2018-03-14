@@ -25,14 +25,14 @@ func main() {
 	})
 
 	blueprintCommands := cli.NewDispatchCommand("blueprint").
-		Describe("Operations on blueprints").
+		Describe("Inspect and edit blueprints").
 		Add("template", cli.NewCommandBlueprintTemplate()).
 		Add("file", cli.NewCommandBlueprintFile()).
 		Add("show", cli.NewCommandBlueprintShow())
 
-	dispatcher := cli.NewDispatchCommand("").
+	dispatcher := cli.NewDispatchCommand(os.Args[0]).
 		Add("new", cli.NewCommandNew()).
 		Add("blueprint", blueprintCommands)
 
-	cliApp.Execute(dispatcher, os.Args[1:])
+	cliApp.Execute(dispatcher, os.Args)
 }

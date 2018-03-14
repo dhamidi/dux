@@ -10,10 +10,8 @@ import (
 
 func main() {
 	app := dux.NewApplication()
-	app.Execute(&dux.CreateBlueprint{Name: "example"})
-	app.Execute(&dux.DefineBlueprintTemplate{BlueprintName: "example", TemplateName: "example.tmpl", Contents: "hello, world"})
-	app.Execute(&dux.DefineBlueprintFile{BlueprintName: "example", FileName: "EXAMPLE", TemplateName: "example.tmpl"})
-
+	app.FileSystem = dux.NewOnDiskFileSystem()
+	app.Init()
 	cliApp := cli.NewCLI(app)
 	app.EventStore.Subscribe(func(e *dux.Event) {
 		if e.Error == nil {
@@ -22,5 +20,9 @@ func main() {
 		}
 		cliApp.ShowError(e.Error)
 	})
+	app.Execute(&dux.CreateBlueprint{Name: "example"})
+	app.Execute(&dux.DefineBlueprintTemplate{BlueprintName: "example", TemplateName: "example.tmpl", Contents: "hello, world"})
+	app.Execute(&dux.DefineBlueprintFile{BlueprintName: "example", FileName: "EXAMPLE", TemplateName: "example.tmpl"})
+
 	cliApp.Execute(cli.NewCommandNew(), os.Args[1:])
 }

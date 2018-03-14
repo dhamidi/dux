@@ -29,7 +29,7 @@ func NewFileSystemStore(dir string, fs FileSystem) *FileSystemStore {
 
 // Get deserializes the file identified by ID as JSON into dest.
 func (s *FileSystemStore) Get(id string, dest interface{}) error {
-	f, err := s.fs.Open(filepath.Join(s.dir, id))
+	f, err := s.fs.Open(filepath.Join(s.dir, id) + ".json")
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (s *FileSystemStore) Get(id string, dest interface{}) error {
 
 // Put serializes src as JSON and writes it to the file identified by id.
 func (s *FileSystemStore) Put(id string, src interface{}) error {
-	f, err := s.fs.Create(filepath.Join(s.dir, id))
+	f, err := s.fs.Create(filepath.Join(s.dir, id) + ".json")
 	if err != nil {
 		return err
 	}

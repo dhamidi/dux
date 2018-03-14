@@ -30,6 +30,7 @@ func (app *Application) Init() *Application {
 	app.Handle("define-blueprint-template", NewStoreBlueprintTemplate(app.FileSystem, app.EventStore))
 	app.Handle("define-blueprint-file", NewAddFileToBlueprint(app.Store, app.EventStore))
 	app.Handle("list-templates", NewListTemplatesInFileSystem(app.FileSystem, app.EventStore))
+	app.Handle("install", NewInstallInFileSystem(app.FileSystem, app.EventStore))
 	return app
 }
 

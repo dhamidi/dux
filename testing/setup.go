@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -30,6 +31,26 @@ func RenderBlueprint(blueprintName string, context ...interface{}) *dux.RenderBl
 func CreateBlueprint(name string) *dux.CreateBlueprint {
 	return &dux.CreateBlueprint{
 		Name: name,
+	}
+}
+
+func Install(pairs ...string) *dux.Install {
+	sources := []string{}
+	destinations := []string{}
+	if len(pairs)%2 != 0 {
+		panic(fmt.Sprintf("Install: uneven number of arguments in %#v", pairs))
+	}
+	for i, f := range pairs {
+		if i%2 == 0 {
+			sources = append(sources, f)
+		} else {
+			destinations = append(destinations, f)
+		}
+	}
+
+	return &dux.Install{
+		Sources:      sources,
+		Destinations: destinations,
 	}
 }
 

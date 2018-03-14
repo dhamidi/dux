@@ -30,8 +30,9 @@ func NewFailingFileSystem(fs dux.FileSystem) *FailingFileSystem {
 // - "open" causes an error to be returned when a file is Open()'d in the underlying file system
 // - "create" causes an error to be returned when a file is Create()'d in the underlying file system
 // - "write" causes an error when writing to the writer returned by Create()
+// - "rename" causes an error when renaming filename
 func (fs *FailingFileSystem) Fail(action string, filename string) {
-	if action != "open" && action != "create" && action != "write" {
+	if action != "open" && action != "create" && action != "write" && action != "rename" {
 		panic(fmt.Sprintf("Invalid action supplied to %T.Fail: %q", fs, action))
 	}
 	fs.failures[action] = append(fs.failures[action], filename)
@@ -58,7 +59,7 @@ func (fs *FailingFileSystem) Create(filename string) (io.WriteCloser, error) {
 	return fs.FileSystem.Create(filename)
 }
 
-// Open forwards the call to the underlying FileSystem, unless a failure has been registered for creating the given file.
+// Open forwards the call to the underlying FileSystem, unless a failure has been registered for opening the given file.
 func (fs *FailingFileSystem) Open(filename string) (io.ReadCloser, error) {
 	for _, f := range fs.failures["open"] {
 		if f == filename {
@@ -67,4 +68,15 @@ func (fs *FailingFileSystem) Open(filename string) (io.ReadCloser, error) {
 	}
 
 	return fs.FileSystem.Open(filename)
+}
+
+// Rename forwards the call to the underlying FileSytem, unless a failure has been registered for renaming the given file.
+func (fs *FailingFileSystem) Rename(oldpath, newpath string) error {
+	for _, f := range fs.failures["rename"] {
+		if f == oldpath {
+			return fmt.Errorf("Failed to rename %q to %q", oldpath, newpath)
+		}
+	}
+
+	return fs.FileSystem.Rename(oldpath, newpath)
 }

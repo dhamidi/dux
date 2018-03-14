@@ -23,6 +23,9 @@ type FileSystem interface {
 
 	// List returns the names of all files in directory d
 	List(dir string) ([]string, error)
+
+	// Rename renames a file from oldpath to newpath.
+	Rename(oldpath, newpath string) error
 }
 
 // FileSystemError wraps errors returned by a FileSystem
@@ -104,4 +107,11 @@ func (fs *InMemoryFileSystem) List(d string) ([]string, error) {
 		}
 	}
 	return result, nil
+}
+
+// Rename associates a buffer with a new path
+func (fs *InMemoryFileSystem) Rename(oldpath, newpath string) error {
+	fs.files[newpath] = fs.files[oldpath]
+	delete(fs.files, oldpath)
+	return nil
 }

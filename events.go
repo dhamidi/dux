@@ -19,5 +19,8 @@ type EventStore interface {
 	Emit(events ...*Event) error
 	// Subscribe registers a function that is will be called for
 	// every event that has been successfully emitted.
-	Subscribe(func(*Event))
+	//
+	// The function returned by Subscribe unsubscribes the
+	// subscriber when called.
+	Subscribe(func(*Event)) func()
 }

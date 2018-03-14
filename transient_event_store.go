@@ -32,8 +32,12 @@ func (s *TransientEventStore) Emit(events ...*Event) error {
 }
 
 // Subscribe registers a subscriber
-func (s *TransientEventStore) Subscribe(subscriber func(*Event)) {
+func (s *TransientEventStore) Subscribe(subscriber func(*Event)) func() {
+	position := len(s.subscribers)
 	s.subscribers = append(s.subscribers, subscriber)
+	return func() {
+		s.subscribers[position] = func(*Event) {}
+	}
 }
 
 // Notify calls all subscribers with the given event

@@ -30,7 +30,7 @@ func NewCLI(app *dux.Application) *CLI {
 }
 
 // Execute runs a given command with the given arguments.  Any errors returned by the command are shown to the user
-func (cli *CLI) Execute(cmd Command, args []string) {
+func (cli *CLI) Execute(cmd Command, args []string) error {
 	options := cmd.Options()
 	if options != nil {
 		options.Parse(args)
@@ -40,6 +40,7 @@ func (cli *CLI) Execute(cmd Command, args []string) {
 	if err != nil {
 		cli.ShowError(err)
 	}
+	return err
 }
 
 // ShowError displays an error to the user

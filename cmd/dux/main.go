@@ -14,15 +14,24 @@ func main() {
 	app.Init()
 	cliApp := cli.NewCLI(app)
 	app.EventStore.Subscribe(func(e *dux.Event) {
+		if e.Name == "blueprint-template-found" {
+			return
+		}
 		if e.Error == nil {
 			fmt.Printf("%s %v\n", e.Name, e.Payload)
 			return
 		}
 		cliApp.ShowError(e.Error)
 	})
-	app.Execute(&dux.CreateBlueprint{Name: "example"})
-	app.Execute(&dux.DefineBlueprintTemplate{BlueprintName: "example", TemplateName: "example.tmpl", Contents: "hello, world"})
-	app.Execute(&dux.DefineBlueprintFile{BlueprintName: "example", FileName: "EXAMPLE", TemplateName: "example.tmpl"})
 
-	cliApp.Execute(cli.NewCommandNew(), os.Args[1:])
+	blueprintCommands := cli.NewDispatchCommand("blueprint").
+		Add("template", cli.NewCommandBlueprintTemplate()).
+		Add("file", cli.NewCommandBlueprintFile()).
+		Add("show", cli.NewCommandBlueprintShow())
+
+	dispatcher := cli.NewDispatchCommand("").
+		Add("new", cli.NewCommandNew()).
+		Add("blueprint", blueprintCommands)
+
+	cliApp.Execute(dispatcher, os.Args[1:])
 }

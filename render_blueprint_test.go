@@ -48,3 +48,27 @@ func TestApp_RenderBlueprint_emits_an_event_for_each_successfully_rendered_file(
 		dux.EventPayload{"filename": "staging/1-file"},
 	)
 }
+
+func TestApp_RenderBlueprint_emits_an_event_if_destination_filename_is_invalid_template(t *testing.T) {
+	app := h.NewApp()
+	do := h.FailOnExecuteError(t, app)
+	do(h.CreateBlueprint("a"))
+	do(h.DefineBlueprintTemplate("a", "x.tmpl", "{{.n}}"))
+	do(h.DefineBlueprintFile("a", "{{.n}-file", "x.tmpl"))
+	do(h.RenderBlueprint("a", map[string]interface{}{"n": 1}))
+	h.AssertEvent(t, app.EventStore, "render-destination-filename-failed", dux.EventPayload{})
+}
+
+func TestApp_RenderBlueprint_emits_an_event_if_destination_file_cannot_be_opened(t *testing.T) {
+	app := h.NewApp()
+	failingFS := h.NewFailingFileSystem(app.FileSystem)
+	app.FileSystem = failingFS
+	failingFS.Fail("create", "staging/x-file")
+	app.ResetDefaultHandlers()
+	do := h.FailOnExecuteError(t, app)
+	do(h.CreateBlueprint("a"))
+	do(h.DefineBlueprintTemplate("a", "x.tmpl", "{{.n}}"))
+	do(h.DefineBlueprintFile("a", "x-file", "x.tmpl"))
+	do(h.RenderBlueprint("a", map[string]interface{}{"n": 1}))
+	h.AssertEvent(t, app.EventStore, "create-destination-file-failed", dux.EventPayload{})
+}

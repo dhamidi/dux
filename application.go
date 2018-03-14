@@ -19,11 +19,17 @@ func NewApplication() *Application {
 	}
 	result.EventStore = NewTransientEventStore()
 	result.Store = NewFileSystemStore("blueprints", result.FileSystem)
-	result.Handle("render-blueprint", NewRenderBlueprintToFileSystem(result.FileSystem, result.Store, result.EventStore))
-	result.Handle("create-blueprint", NewCreateBlueprintInFileSystem(result.Store))
-	result.Handle("define-blueprint-template", NewStoreBlueprintTemplate(result.FileSystem))
-	result.Handle("define-blueprint-file", NewAddFileToBlueprint(result.Store))
-	return result
+	return result.ResetDefaultHandlers()
+}
+
+// ResetDefaultHandlers installs all default command handlers after clearing all registered command handlers.
+func (app *Application) ResetDefaultHandlers() *Application {
+	app.commandHandlers = map[string]CommandHandler{}
+	app.Handle("render-blueprint", NewRenderBlueprintToFileSystem(app.FileSystem, app.Store, app.EventStore))
+	app.Handle("create-blueprint", NewCreateBlueprintInFileSystem(app.Store))
+	app.Handle("define-blueprint-template", NewStoreBlueprintTemplate(app.FileSystem))
+	app.Handle("define-blueprint-file", NewAddFileToBlueprint(app.Store))
+	return app
 }
 
 // Handle registers a command handler for the given command type.

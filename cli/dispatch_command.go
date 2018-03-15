@@ -31,9 +31,8 @@ func NewDispatchCommand(name string) *DispatchCommand {
 //
 // SetParent is called automatically by Add when adding a
 // DispatchCommand.
-func (cmd *DispatchCommand) SetParent(parent *DispatchCommand) *DispatchCommand {
+func (cmd *DispatchCommand) SetParent(parent *DispatchCommand) {
 	cmd.parent = parent
-	return cmd
 }
 
 // Description implements HasDescription
@@ -123,7 +122,9 @@ func (cmd *DispatchCommand) Options() *flag.FlagSet { return nil }
 
 // Add defines a new subcommand
 func (cmd *DispatchCommand) Add(name string, command Command) *DispatchCommand {
-	if child, isChild := command.(*DispatchCommand); isChild {
+	if child, isChild := command.(interface {
+		SetParent(cmd *DispatchCommand)
+	}); isChild {
 		child.SetParent(cmd)
 	}
 	cmd.subcommands[name] = command

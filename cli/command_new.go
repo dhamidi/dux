@@ -11,6 +11,7 @@ import (
 
 // CommandNew is a CLI command for rendering a blueprint.
 type CommandNew struct {
+	*parentCommand
 	BlueprintName string
 	Destination   string
 	DryRun        bool
@@ -18,7 +19,7 @@ type CommandNew struct {
 
 // NewCommandNew creates a new, empty instance of this command.
 func NewCommandNew() *CommandNew {
-	return &CommandNew{}
+	return &CommandNew{parentCommand: &parentCommand{}}
 }
 
 // Exec implements Command
@@ -27,7 +28,7 @@ func (cmd *CommandNew) Exec(ctx *CLI, args []string) (Command, error) {
 		return cmd, fmt.Errorf("No blueprint name provided")
 	}
 	cmd.BlueprintName = args[0]
-
+	data := cmd.parseData(args[1:])
 	sources := []string{}
 	destinations := []string{}
 	done := ctx.app.EventStore.Subscribe(cmd.collectRenderedFiles(&sources, &destinations))
@@ -35,7 +36,7 @@ func (cmd *CommandNew) Exec(ctx *CLI, args []string) (Command, error) {
 	if err := ctx.app.Execute(&dux.RenderBlueprint{
 		Name:        cmd.BlueprintName,
 		Destination: ".dux",
-		Data:        map[string]interface{}{},
+		Data:        data,
 	}); err != nil {
 		return cmd, err
 	}
@@ -48,6 +49,20 @@ func (cmd *CommandNew) Exec(ctx *CLI, args []string) (Command, error) {
 		Sources:      sources,
 		Destinations: destinations,
 	})
+}
+
+// parseData parses a series of VAR=VALUE assignments in args as a map
+// of string to string.
+func (cmd *CommandNew) parseData(args []string) map[string]interface{} {
+	result := map[string]interface{}{}
+	for _, arg := range args {
+		parts := strings.Split(arg, "=")
+		name, values := parts[0], parts[1:]
+		value := strings.Join(values, "=")
+		result[name] = value
+	}
+
+	return result
 }
 
 // collectRenderedFiles listens to events emitted by RenderBlueprint to build a list of files to install.
@@ -77,7 +92,7 @@ func (cmd *CommandNew) Description() string { return `Create new files from blue
 
 // ShowUsage implements HasUsage
 func (cmd *CommandNew) ShowUsage(out io.Writer) {
-	fmt.Fprintf(out, "Usage: new [--dry-run] BLUEPRINT\n\n")
+	fmt.Fprintf(out, "Usage: %s new [--dry-run] BLUEPRINT\n\n", cmd.CommandPath())
 	fmt.Fprintf(out, "Options:\n")
 	fmt.Fprintf(out, " --dry-run=false   Do not move generated files into current directory\n")
 	fmt.Fprintf(out, "\n")

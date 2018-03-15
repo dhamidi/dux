@@ -1,0 +1,1 @@
+{"Name":"command","Files":{"command_{{(identifier .name).ToSnake.Lower}}.go":"command.go.tmpl"}}

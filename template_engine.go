@@ -51,7 +51,7 @@ func (t *HTMLTemplateEngine) RenderTemplate(out io.Writer, templateName string, 
 		return err
 	}
 
-	tmpl := template.New(templateName)
+	tmpl := template.New(templateName).Funcs(t.TemplateFuncs())
 	for _, filename := range templateFiles {
 		templateFile, err := t.fs.Open(filepath.Join(t.dir, filename))
 		if err != nil {
@@ -73,7 +73,7 @@ func (t *HTMLTemplateEngine) RenderTemplate(out io.Writer, templateName string, 
 
 // RenderString implements TemplateEngine
 func (t *HTMLTemplateEngine) RenderString(tmpl string, data interface{}) (string, error) {
-	parsedTemplate, err := template.New("main").Parse(tmpl)
+	parsedTemplate, err := template.New("main").Funcs(t.TemplateFuncs()).Parse(tmpl)
 	if err != nil {
 		return tmpl, err
 	}
@@ -84,4 +84,13 @@ func (t *HTMLTemplateEngine) RenderString(tmpl string, data interface{}) (string
 	}
 
 	return out.String(), nil
+}
+
+// TemplateFuncs returns a template.FuncMap containing the functions that should be made available to all templates.
+//
+// Modifying the map returned by this functions makes it possible to add more functions to a template.
+func (t *HTMLTemplateEngine) TemplateFuncs() template.FuncMap {
+	return template.FuncMap{
+		"identifier": ParseIdentifier,
+	}
 }

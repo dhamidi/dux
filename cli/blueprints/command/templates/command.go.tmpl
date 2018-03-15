@@ -1,0 +1,41 @@
+package cli
+
+import (
+	"flag"
+	"fmt"
+	"io"
+	"strings"
+
+	"github.com/dhamidi/dux"
+)
+
+// Command{{.name}} is a CLI command
+type CommandNew struct {}
+
+// NewCommand{{.name}} creates a new, empty instance of this command.
+func NewCommand{{.name}}() *Command{{.name}} {
+	return &Command{{.name}}{}
+}
+
+// Exec implements Command
+func (cmd *Command{{.name}}) Exec(ctx *CLI, args []string) (Command, error) {
+        return cmd, fmt.Errorf("not implemented")
+}
+
+// Options implements Command
+func (cmd *Command{{.name}}) Options() *flag.FlagSet {
+	flags := flag.NewFlagSet("new", flag.ContinueOnError)
+	flags.StringVar(&cmd.Destination, "destination", "", "Directory into which to render the blueprint")
+	flags.BoolVar(&cmd.DryRun, "dry-run", false, "Do not move generated files into current directory")
+	return flags
+}
+
+// Description implements HasDescription
+func (cmd *Command{{.name}}) Description() string { return `TODO: Add description` }
+
+// ShowUsage implements HasUsage
+func (cmd *Command{{.name}}) ShowUsage(out io.Writer) {
+	fmt.Fprintf(out, "Usage: {{.name}}\n\n"
+	fmt.Fprintf(out, "TODO: Add usage:\n")
+	fmt.Fprintf(out, "\n")
+}

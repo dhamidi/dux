@@ -33,6 +33,7 @@ func main() {
 
 	dispatcher := cli.NewDispatchCommand(os.Args[0]).
 		Add("new", cli.NewCommandNew()).
+		Add("list", cli.NewCommandList()).
 		Add("blueprint", blueprintCommands)
 
 	cmd, err := cliApp.Execute(dispatcher, os.Args)

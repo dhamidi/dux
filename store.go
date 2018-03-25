@@ -2,13 +2,16 @@ package dux
 
 import (
 	"encoding/json"
+	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Store provides access to a id-indexed store of persistent objects.
 type Store interface {
 	Get(id string, dest interface{}) error
 	Put(id string, src interface{}) error
+	List(pattern string) ([]string, error)
 }
 
 // FileSystemStore stores objects in the provided directory on a filesystem.
@@ -49,4 +52,24 @@ func (s *FileSystemStore) Put(id string, src interface{}) error {
 	enc := json.NewEncoder(f)
 
 	return enc.Encode(src)
+}
+
+// List searches for all json files matching the given glob in the base directory of the file system store.
+//
+// The json extension is removed from all filenames before they are returned
+func (s *FileSystemStore) List(pattern string) ([]string, error) {
+	filenames, err := filepath.Glob(filepath.Join(s.dir, pattern+".json"))
+	result := []string{}
+	if err != nil {
+		return result, err
+	}
+
+	prefix := s.dir + string(os.PathSeparator)
+	for _, filename := range filenames {
+		withoutExtension := strings.TrimSuffix(filename, ".json")
+		withoutDirectory := strings.TrimPrefix(withoutExtension, prefix)
+		result = append(result, withoutDirectory)
+	}
+
+	return result, nil
 }

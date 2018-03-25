@@ -28,7 +28,8 @@ func main() {
 		Describe("Inspect and edit blueprints").
 		Add("template", cli.NewCommandBlueprintTemplate()).
 		Add("file", cli.NewCommandBlueprintFile()).
-		Add("show", cli.NewCommandBlueprintShow())
+		Add("show", cli.NewCommandBlueprintShow()).
+		Add("create", cli.NewCommandBlueprintCreate())
 
 	dispatcher := cli.NewDispatchCommand(os.Args[0]).
 		Add("new", cli.NewCommandNew()).

@@ -3,18 +3,23 @@ package cli
 import (
 	"flag"
 	"fmt"
+	"io"
 
 	"github.com/dhamidi/dux"
 )
 
 // CommandBlueprintShow is a CLI command for rendering a blueprint.
 type CommandBlueprintShow struct {
+	*parentCommand
+
 	BlueprintName string
 }
 
 // NewCommandBlueprintShow creates a new, empty instance of this command.
 func NewCommandBlueprintShow() *CommandBlueprintShow {
-	return &CommandBlueprintShow{}
+	return &CommandBlueprintShow{
+		parentCommand: new(parentCommand),
+	}
 }
 
 // Exec implements Command
@@ -63,4 +68,14 @@ func (cmd *CommandBlueprintShow) Show(ctx *CLI, blueprint *dux.Blueprint) {
 			fmt.Fprintf(ctx.out, "  - %s\n", name)
 		}
 	}
+}
+
+// Description implements HasDescription
+func (cmd *CommandBlueprintShow) Description() string { return `Show blueprint definition` }
+
+// ShowUsage implements HasUsage
+func (cmd *CommandBlueprintShow) ShowUsage(out io.Writer) {
+	fmt.Fprintf(out, "Usage: %s show BLUEPRINT\n\n", cmd.CommandPath())
+	fmt.Fprintf(out, "Show details about a blueprint\n\n")
+	fmt.Fprintf(out, "\n")
 }

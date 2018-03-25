@@ -29,6 +29,7 @@ func main() {
 		Add("template", cli.NewCommandBlueprintTemplate()).
 		Add("file", cli.NewCommandBlueprintFile()).
 		Add("show", cli.NewCommandBlueprintShow()).
+		Add("describe", cli.NewCommandBlueprintDescribe()).
 		Add("create", cli.NewCommandBlueprintCreate())
 
 	dispatcher := cli.NewDispatchCommand(os.Args[0]).

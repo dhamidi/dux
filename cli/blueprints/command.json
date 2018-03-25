@@ -1,1 +1,1 @@
-{"Name":"command","Files":{"command_{{(identifier .name).ToSnake.Lower}}.go":"command.go.tmpl"}}
+{"Name":"command","Files":{"command_{{(identifier .name).ToSnake.Lower}}.go":"command.go.tmpl"},"Description":"Generate a new CLI command"}

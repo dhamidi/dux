@@ -34,6 +34,13 @@ func CreateBlueprint(name string) *dux.CreateBlueprint {
 	}
 }
 
+func DescribeBlueprint(name string, description string) *dux.DescribeBlueprint {
+	return &dux.DescribeBlueprint{
+		BlueprintName: name,
+		Description:   description,
+	}
+}
+
 func Install(pairs ...string) *dux.Install {
 	sources := []string{}
 	destinations := []string{}

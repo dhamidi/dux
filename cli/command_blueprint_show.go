@@ -53,6 +53,9 @@ func (cmd *CommandBlueprintShow) Show(ctx *CLI, blueprint *dux.Blueprint) {
 	done()
 
 	fmt.Fprintf(ctx.out, "Name: %s\n", blueprint.Name)
+	if len(blueprint.Description) > 0 {
+		fmt.Fprintf(ctx.out, "Description: %s\n", blueprint.Description)
+	}
 	if len(blueprint.Files) > 0 {
 		fmt.Fprintf(ctx.out, "Files:\n")
 		for destination, template := range blueprint.Files {

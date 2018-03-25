@@ -3,7 +3,7 @@
 - [X] generate files from templates in a new directory (the "staging directory")
 - [X] copy files from the staging directory to the destination tree
 - [X] list available blueprints from CLI
-- [ ] add help text to all commands
+- [X] add help text to all commands
 - [ ] add description to blueprints
 - [ ] add argument specs to blueprints
 - [ ] add argument specs to commands

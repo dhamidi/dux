@@ -3,6 +3,7 @@ package cli
 import (
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 
 	"github.com/dhamidi/dux"
@@ -10,6 +11,8 @@ import (
 
 // CommandBlueprintTemplate is a CLI command for rendering a blueprint.
 type CommandBlueprintTemplate struct {
+	*parentCommand
+
 	BlueprintName string
 	TemplateName  string
 	Contents      string
@@ -17,7 +20,9 @@ type CommandBlueprintTemplate struct {
 
 // NewCommandBlueprintTemplate creates a new, empty instance of this command.
 func NewCommandBlueprintTemplate() *CommandBlueprintTemplate {
-	return &CommandBlueprintTemplate{}
+	return &CommandBlueprintTemplate{
+		parentCommand: new(parentCommand),
+	}
 }
 
 // Exec implements Command
@@ -43,9 +48,22 @@ func (cmd *CommandBlueprintTemplate) Exec(ctx *CLI, args []string) (Command, err
 	})
 }
 
+// Description implements HasDescription
+func (cmd *CommandBlueprintTemplate) Description() string { return `Define a template for a blueprint` }
+
+// ShowUsage implements HasUsage
+func (cmd *CommandBlueprintTemplate) ShowUsage(out io.Writer) {
+	fmt.Fprintf(out, "Usage: %s template [--contents='...'] BLUEPRINT TEMPLATE-NAME\n\n", cmd.CommandPath())
+	fmt.Fprintf(out, "Adds a template called TEMPLATE-NAME to BLUEPRINT.\n\n")
+	fmt.Fprintf(out, "If no template content is provided via the contents option, the template content is read from stdin.\n\n")
+	fmt.Fprintf(out, "Options:\n")
+	fmt.Fprintf(out, "  --contents='...'   Set template content")
+	fmt.Fprintf(out, "\n")
+}
+
 // Options implements Command
 func (cmd *CommandBlueprintTemplate) Options() *flag.FlagSet {
-	flags := flag.NewFlagSet("new", flag.ContinueOnError)
+	flags := flag.NewFlagSet("blueprint template", flag.ContinueOnError)
 	flags.StringVar(&cmd.Contents, "contents", "", "Template contents")
 	return flags
 }
